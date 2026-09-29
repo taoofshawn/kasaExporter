@@ -60,6 +60,8 @@ INFO = Gauge(
 LED = Gauge("kasa_device_led_on", "LED state (1=on)", ["alias", "host"])
 UPTIME = Gauge("kasa_device_uptime_seconds", "Device uptime in seconds", ["alias", "host"])
 
+LAST_ALIAS = {}  # host -> last successfully polled alias
+
 
 async def poll_host(host):
     creds = Credentials(USERNAME, PASSWORD)
@@ -74,12 +76,16 @@ async def poll_host(host):
             if attempt < RETRIES:
                 await asyncio.sleep(RETRY_DELAY)
     else:
-        UP.labels(alias="unknown", host=host).set(0)
+        # Only emit up=0 under the last-known alias — never create a phantom
+        # "unknown" series for a host we have never successfully polled.
+        if host in LAST_ALIAS:
+            UP.labels(alias=LAST_ALIAS[host], host=host).set(0)
         log.error("host %s unreachable after %d attempts", host, RETRIES)
         return
 
     info = dev.sys_info or {}
     alias = dev.alias or host
+    LAST_ALIAS[host] = alias
     device_id = info.get("deviceId") or info.get("device_id") or ""
     mac = info.get("mac") or info.get("macAddr") or ""
     model = info.get("model") or ""
