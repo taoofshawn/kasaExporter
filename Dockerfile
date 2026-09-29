@@ -6,9 +6,10 @@ RUN apt-get update \
 
 RUN pip install --no-cache-dir \
     python-kasa==0.10.2 \
-    prometheus-client==0.26.0
+    prometheus-client==0.26.0 \
+    tzdata==2026.4
 
 COPY kasa_exporter.py /app/kasa_exporter.py
 
 EXPOSE 9498
-CMD ["python", "/app/kasa_exporter.py"]
+ENTRYPOINT ["python", "/app/kasa_exporter.py"]
