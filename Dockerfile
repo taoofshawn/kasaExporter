@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir \
 COPY kasa_exporter.py /app/kasa_exporter.py
 
 EXPOSE 9498
-CMD ["python", "/app/kasa_exporter.py"]
+ENTRYPOINT ["python", "/app/kasa_exporter.py"]
